@@ -1,0 +1,980 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1f66">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Event Ops">
+<title>CelcomDigi Event Ops</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<script src="config.js"></script>
+<style>
+:root{
+  --navy:#0b1f66; --navy-2:#13308f; --blue:#1689e0; --blue-d:#0b6fc2; --blue-soft:#e8f3fd;
+  --yellow:#ffd400; --yellow-soft:#fff8d6;
+  --bg:#f3f5fa; --card:#fff; --text:#14213d; --muted:#67718c; --border:#e1e6ef;
+  --danger:#d93a3a; --danger-soft:#fdeceb; --ok:#14935a; --ok-soft:#e6f6ee; --wa:#25d366;
+  --radius:14px; --shadow:0 1px 2px rgba(16,30,80,.06),0 4px 14px rgba(16,30,80,.06);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;font-size:15px;line-height:1.45}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.muted{color:var(--muted)}
+.demo{background:var(--yellow);color:var(--navy);font-size:12px;font-weight:600;text-align:center;padding:4px 8px}
+
+/* layout */
+.wrap{max-width:520px;margin:0 auto;padding:16px 16px calc(96px + env(safe-area-inset-bottom))}
+.wrap.wide{max-width:1200px;padding-bottom:40px}
+.topbar{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--border);padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top))}
+.topbar-in{display:flex;align-items:center;gap:10px;max-width:1200px;margin:0 auto}
+.topbar.narrow .topbar-in{max-width:488px}
+.topbar img{height:26px;display:block}
+.topbar .grow{flex:1}
+.iconbtn{border:1px solid var(--border);background:#fff;border-radius:10px;height:36px;min-width:36px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:600;color:var(--navy)}
+.iconbtn svg{width:18px;height:18px}
+.lang{border:1px solid var(--border);background:#fff;border-radius:10px;height:36px;padding:0 8px;font-size:13px;font-weight:600;color:var(--navy)}
+
+/* cards & buttons */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.card h3{margin:0 0 12px;font-size:15px;color:var(--navy)}
+.btn{border:0;border-radius:12px;height:48px;padding:0 18px;font-weight:600;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:active{background:var(--blue-d)}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-ghost{background:#fff;border:1px solid var(--border);color:var(--navy)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-wa{background:var(--wa);color:#fff;text-decoration:none}
+.btn-block{width:100%}
+.btn-sm{height:34px;padding:0 12px;font-size:13px;border-radius:9px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--blue-soft);color:var(--blue-d);vertical-align:middle}
+.badge.y{background:var(--yellow-soft);color:#8a6d00}
+.badge.g{background:var(--ok-soft);color:var(--ok)}
+.badge.n{background:#eef0f5;color:var(--muted)}
+
+/* login */
+.login{min-height:calc(100vh - 26px);background:#fff;display:flex;flex-direction:column;justify-content:center;padding:24px 16px}
+.login-card{max-width:420px;width:100%;margin:0 auto}
+.login-logo{display:block;width:220px;max-width:70%;margin:0 auto 6px}
+.login h1{text-align:center;font-size:18px;margin:4px 0 22px;color:var(--navy);letter-spacing:.2px}
+.seg{display:flex;background:#eef1f7;border-radius:12px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:transparent;height:40px;border-radius:9px;font-weight:600;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.alert{border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:14px}
+.alert.err{background:var(--danger-soft);color:var(--danger)}
+.alert.info{background:var(--yellow-soft);color:#6f5800}
+
+/* forms */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#2b3656}
+.req{color:var(--danger)}
+.input,.field input:not([type=checkbox]),.field select{width:100%;height:48px;border:1px solid var(--border);border-radius:11px;background:#fff;padding:0 12px;font-size:16px;outline:none}
+.field input:focus,.field select:focus,.input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(22,137,224,.15)}
+.field.err input,.field.err select{border-color:var(--danger)}
+.field .msg{color:var(--danger);font-size:12px;margin-top:5px}
+.field .hint{color:var(--muted);font-size:12px;margin-top:5px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sticky-foot{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(6px);border-top:1px solid var(--border);padding:12px 16px calc(12px + env(safe-area-inset-bottom));z-index:15}
+.sticky-foot .in{max-width:488px;margin:0 auto;display:flex;gap:10px}
+.page-title{display:flex;align-items:center;gap:10px;margin:2px 0 14px}
+.page-title h2{margin:0;font-size:19px;color:var(--navy)}
+.back{border:0;background:#fff;border:1px solid var(--border);width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--navy)}
+
+/* home */
+.hero{background:linear-gradient(135deg,var(--navy),var(--navy-2) 60%,var(--blue));color:#fff;border-radius:18px;padding:20px;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,212,0,.18)}
+.hero .g{font-size:14px;opacity:.85}
+.hero .n{font-size:22px;font-weight:700;margin-top:2px}
+.hero .d{font-size:13px;opacity:.75;margin-top:8px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.stat{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+.stat .l{font-size:12px;color:var(--muted);font-weight:600}
+.stat .v{font-size:28px;font-weight:700;color:var(--navy);margin-top:2px}
+.action{width:100%;border:1px solid var(--border);background:#fff;border-radius:16px;padding:18px;display:flex;align-items:center;gap:14px;text-align:left;margin-bottom:12px;box-shadow:var(--shadow)}
+.action .ic{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.action .ic svg{width:26px;height:26px}
+.action .t{font-weight:700;font-size:16px;color:var(--navy);letter-spacing:.3px}
+.action .s{font-size:13px;color:var(--muted)}
+.action .chev{margin-left:auto;color:#a5adc2}
+.action.primary .ic{background:var(--blue);color:#fff}
+.action.secondary .ic{background:var(--yellow);color:var(--navy)}
+
+/* submissions list */
+.sub{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
+.sub .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.sub .nm{font-weight:700;color:var(--navy)}
+.sub .meta{font-size:12px;color:var(--muted)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13px;margin:10px 0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-weight:500;word-break:break-word}
+.sub .acts{display:flex;gap:8px;flex-wrap:wrap}
+.empty{text-align:center;padding:40px 16px;color:var(--muted)}
+
+/* WhatsApp preview */
+.wa-box{background:#e7ffdb;border:1px solid #c9eeb6;border-radius:12px;padding:14px;white-space:pre-wrap;font-size:14px;font-family:inherit;word-break:break-word}
+.success-ic{width:64px;height:64px;border-radius:50%;background:var(--ok-soft);color:var(--ok);display:flex;align-items:center;justify-content:center;margin:6px auto 10px}
+
+/* admin */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:12px 0 2px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:1px solid var(--border);background:#fff;border-radius:99px;height:38px;padding:0 16px;font-weight:600;font-size:14px;white-space:nowrap;color:var(--muted)}
+.tab.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.bar{margin-bottom:10px}
+.bar-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;gap:8px}
+.bar-top span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track{height:8px;background:#eef1f7;border-radius:99px;overflow:hidden}
+.fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--navy-2));border-radius:99px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:12px}
+.toolbar .field{margin:0;min-width:140px;flex:1}
+.toolbar .field input,.toolbar .field select{height:42px;font-size:14px}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+th{background:#f7f9fc;color:var(--muted);font-weight:600;font-size:12px;position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+td .acts{display:flex;gap:6px}
+.switch-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.switch-row:last-child{border-bottom:0}
+.switch{position:relative;width:46px;height:26px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch span{position:absolute;inset:0;background:#cfd5e2;border-radius:99px;transition:.2s}
+.switch span:before{content:"";position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.switch input:checked+span{background:var(--blue)}
+.switch input:checked+span:before{transform:translateX(20px)}
+.chips{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.chip{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#f7f9fc;border:1px solid var(--border);border-radius:10px;padding:8px 8px 8px 12px;font-size:14px}
+.chip button{border:0;background:transparent;color:var(--danger);font-size:18px;line-height:1;width:28px;height:28px;border-radius:8px}
+.add-row{display:flex;gap:8px}
+.add-row input{flex:1;height:42px;border:1px solid var(--border);border-radius:10px;padding:0 12px;font-size:14px;min-width:0}
+.section-gap{margin-top:14px}
+
+/* modal & toast */
+.overlay{position:fixed;inset:0;background:rgba(10,20,50,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.modal{background:#fff;width:100%;max-width:560px;max-height:92vh;border-radius:18px 18px 0 0;display:flex;flex-direction:column}
+.modal-h{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}
+.modal-h h3{margin:0;font-size:17px;color:var(--navy)}
+.modal-b{padding:16px 18px;overflow-y:auto}
+.modal-f{padding:12px 18px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+@media(min-width:640px){.overlay{align-items:center}.modal{border-radius:18px}}
+.toast{position:fixed;left:50%;top:calc(64px + env(safe-area-inset-top));transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:60;box-shadow:0 6px 20px rgba(0,0,0,.2);max-width:calc(100% - 32px)}
+.offline{position:fixed;inset:0;background:rgba(255,255,255,.97);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:12px;color:var(--navy);font-weight:600}
+.offline svg{width:56px;height:56px;color:var(--danger)}
+
+@media(max-width:820px){.kpis{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}
+@media(max-width:380px){.row2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="offline" class="offline hidden">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M2 8.8a15 15 0 0 1 4.2-2.7M10.7 5.1A15 15 0 0 1 22 8.8M5 12.9a10 10 0 0 1 5.2-2.8M19 12.9a10 10 0 0 0-2-1.5M12 20h.01"/></svg>
+  <div id="offline-msg"></div>
+</div>
+
+<script>
+/* ============================================================
+   1. LANGUAGE
+   ============================================================ */
+const I18N = {
+  en: {
+    salesLogin:'Sales Login', adminLogin:'Admin Login', loginId:'Login ID', password:'Password', login:'Log In', logout:'Log Out',
+    invalidLogin:'Invalid ID or password', kicked:'You were logged out because this account signed in on another device.',
+    removed:'Your account is no longer active. Please contact the admin.', offline:'No internet connection. Please connect to continue.',
+    gm:'Good Morning', ga:'Good Afternoon', ge:'Good Evening',
+    todaySubs:"Today's Submissions", totalSubs:'Total Submissions',
+    addNew:'ADD NEW', addNewSub:'Register a customer redemption', viewSub:'VIEW SUBMISSION', viewSubSub:'Check, edit or delete your entries',
+    f_eventDate:'Event Date', f_eventVenue:'Event / Venue', f_fullName:'Customer Full Name', f_idType:'ID Document', ic:'IC', passport:'Passport',
+    f_idNumber:'ID Number', f_currentNumber:'Current Number', f_newNumber:'New Number', f_gameId:'Game ID', f_serverId:'Server ID',
+    f_plan:'Plan Subscribed', f_freebie:'Freebies', select:'Select…',
+    submit:'Submit', save:'Save Changes', saveBtn:'Save', create:'Create', cancel:'Cancel', del:'Delete', edit:'Edit', edited:'Edited', confirm:'Confirm',
+    required:'Required', badIc:'IC must be 12 digits', badPassport:'Letters and numbers only', badPhone:'Format: 601xxxxxxxx',
+    dupId:'This IC/Passport has already redeemed at this event', dupNew:'This New Number is already used at this event', dupGame:'This Game ID is already used at this event',
+    fixErrors:'Please check the highlighted fields', locked:'This submission was already edited once', saved:'Submission saved', updated:'Changes saved', deleted:'Deleted',
+    waTitle:'Submission Saved', waHint:'Tap the button, then choose a contact in WhatsApp.', waSend:'Send via WhatsApp', copy:'Copy Text', copied:'Copied', done:'Done',
+    noSubs:'No submissions yet', editOnce:'You can edit this submission only once. After saving, it will be locked.',
+    confirmDel:'Delete this submission? This cannot be undone.', search:'Search name, ID, number…', editSub:'Edit Submission', newSub:'New Redemption', mySubs:'My Submissions',
+    submittedAt:'Submitted', staffLabel:'Staff', dashboard:'Dashboard', subsTab:'Submissions', staffTab:'Staff', admins:'Admins', settings:'Settings',
+    from:'From', to:'To', allEvents:'All events', allStaff:'All staff', exportXlsx:'Export Excel', records:'records', todayL:'Today', allTime:'All Time',
+    staffAccounts:'Staff Accounts', eventsCount:'Events', byStaff:'By Staff', byEvent:'By Event / Venue', byPlan:'By Plan', byFreebie:'By Freebie',
+    addStaff:'Add Staff', name:'Name', email:'Email', contact:'Contact', resetPw:'Reset Password', newPw:'New Password', currentPw:'Current Password', changePw:'Change Password',
+    addAdmin:'Add Admin', mainAdmin:'Main Admin', maxAdmins:'Maximum of 5 admins reached', onlyMain:'Only the main admin can add or remove admins.',
+    pwMin8:'At least 8 characters', pwMin6:'At least 6 characters', wrongPw:'Current password is incorrect', idTaken:'This Login ID already exists', badLoginId:'No spaces allowed',
+    confirmDelUser:'Delete this account? It will be logged out immediately. Past submissions are kept.', pwChanged:'Password updated',
+    mandatory:'Mandatory Fields', mandatoryHint:'Turn on to make a field required in the sales form.',
+    listEvents:'Event / Venue List', listPlans:'Plan Subscribed List', listFreebies:'Freebies List', addItem:'Add', newItem:'Type a new item…',
+    loggedIn:'Logged in', notLoggedIn:'Offline', actions:'Actions', noData:'No data yet', subsCount:'Submissions', status:'Status', itemExists:'Item already in list',
+    demoBanner:'DEMO MODE · data is saved on this device only', resetDemo:'Reset demo data', resetDemoQ:'Erase all demo data and restore the starting setup?',
+    excelMissing:'Excel tool not loaded. Check your internet and try again.', welcome:'Welcome'
+  },
+  ms: {
+    salesLogin:'Log Masuk Jualan', adminLogin:'Log Masuk Admin', loginId:'ID Log Masuk', password:'Kata Laluan', login:'Log Masuk', logout:'Log Keluar',
+    invalidLogin:'ID atau kata laluan tidak sah', kicked:'Anda telah dilog keluar kerana akaun ini log masuk di peranti lain.',
+    removed:'Akaun anda tidak lagi aktif. Sila hubungi admin.', offline:'Tiada sambungan internet. Sila sambung untuk meneruskan.',
+    gm:'Selamat Pagi', ga:'Selamat Petang', ge:'Selamat Malam',
+    todaySubs:'Penghantaran Hari Ini', totalSubs:'Jumlah Penghantaran',
+    addNew:'TAMBAH BARU', addNewSub:'Daftar penebusan pelanggan', viewSub:'LIHAT PENGHANTARAN', viewSubSub:'Semak, edit atau padam rekod anda',
+    f_eventDate:'Tarikh Acara', f_eventVenue:'Acara / Lokasi', f_fullName:'Nama Penuh Pelanggan', f_idType:'Dokumen Pengenalan', ic:'IC', passport:'Pasport',
+    f_idNumber:'Nombor Pengenalan', f_currentNumber:'Nombor Semasa', f_newNumber:'Nombor Baharu', f_gameId:'ID Permainan', f_serverId:'ID Pelayan',
+    f_plan:'Pelan Dilanggan', f_freebie:'Hadiah Percuma', select:'Pilih…',
+    submit:'Hantar', save:'Simpan Perubahan', saveBtn:'Simpan', create:'Cipta', cancel:'Batal', del:'Padam', edit:'Edit', edited:'Telah Diedit', confirm:'Sahkan',
+    required:'Wajib diisi', badIc:'IC mestilah 12 digit', badPassport:'Huruf dan nombor sahaja', badPhone:'Format: 601xxxxxxxx',
+    dupId:'IC/Pasport ini telah menebus di acara ini', dupNew:'Nombor Baharu ini telah digunakan di acara ini', dupGame:'ID Permainan ini telah digunakan di acara ini',
+    fixErrors:'Sila semak ruangan yang ditanda', locked:'Penghantaran ini telah diedit sekali', saved:'Penghantaran disimpan', updated:'Perubahan disimpan', deleted:'Dipadam',
+    waTitle:'Penghantaran Disimpan', waHint:'Tekan butang, kemudian pilih kenalan dalam WhatsApp.', waSend:'Hantar melalui WhatsApp', copy:'Salin Teks', copied:'Disalin', done:'Selesai',
+    noSubs:'Tiada penghantaran lagi', editOnce:'Anda hanya boleh edit penghantaran ini sekali. Selepas disimpan, ia akan dikunci.',
+    confirmDel:'Padam penghantaran ini? Tindakan ini tidak boleh dibatalkan.', search:'Cari nama, ID, nombor…', editSub:'Edit Penghantaran', newSub:'Penebusan Baharu', mySubs:'Penghantaran Saya',
+    submittedAt:'Dihantar', staffLabel:'Staf', dashboard:'Papan Pemuka', subsTab:'Penghantaran', staffTab:'Staf', admins:'Admin', settings:'Tetapan',
+    from:'Dari', to:'Hingga', allEvents:'Semua acara', allStaff:'Semua staf', exportXlsx:'Eksport Excel', records:'rekod', todayL:'Hari Ini', allTime:'Keseluruhan',
+    staffAccounts:'Akaun Staf', eventsCount:'Acara', byStaff:'Mengikut Staf', byEvent:'Mengikut Acara / Lokasi', byPlan:'Mengikut Pelan', byFreebie:'Mengikut Hadiah',
+    addStaff:'Tambah Staf', name:'Nama', email:'E-mel', contact:'No. Telefon', resetPw:'Set Semula Kata Laluan', newPw:'Kata Laluan Baharu', currentPw:'Kata Laluan Semasa', changePw:'Tukar Kata Laluan',
+    addAdmin:'Tambah Admin', mainAdmin:'Admin Utama', maxAdmins:'Had maksimum 5 admin telah dicapai', onlyMain:'Hanya admin utama boleh tambah atau buang admin.',
+    pwMin8:'Sekurang-kurangnya 8 aksara', pwMin6:'Sekurang-kurangnya 6 aksara', wrongPw:'Kata laluan semasa salah', idTaken:'ID Log Masuk ini sudah wujud', badLoginId:'Tiada ruang kosong dibenarkan',
+    confirmDelUser:'Padam akaun ini? Ia akan dilog keluar serta-merta. Rekod lama disimpan.', pwChanged:'Kata laluan dikemas kini',
+    mandatory:'Ruangan Wajib', mandatoryHint:'Hidupkan untuk mewajibkan ruangan dalam borang jualan.',
+    listEvents:'Senarai Acara / Lokasi', listPlans:'Senarai Pelan', listFreebies:'Senarai Hadiah Percuma', addItem:'Tambah', newItem:'Taip item baharu…',
+    loggedIn:'Dalam talian', notLoggedIn:'Luar talian', actions:'Tindakan', noData:'Tiada data lagi', subsCount:'Penghantaran', status:'Status', itemExists:'Item sudah ada dalam senarai',
+    demoBanner:'MOD DEMO · data disimpan pada peranti ini sahaja', resetDemo:'Set semula data demo', resetDemoQ:'Padam semua data demo dan kembalikan tetapan asal?',
+    excelMissing:'Alat Excel tidak dimuatkan. Semak internet dan cuba lagi.', welcome:'Selamat Datang'
+  },
+  zh: {
+    salesLogin:'销售登录', adminLogin:'后台登录', loginId:'登录ID', password:'密码', login:'登录', logout:'登出',
+    invalidLogin:'ID或密码错误', kicked:'此账号已在另一台设备登录，您已被登出。',
+    removed:'您的账号已失效，请联系管理员。', offline:'没有网络连接，请连接网络后继续。',
+    gm:'早上好', ga:'下午好', ge:'晚上好',
+    todaySubs:'今日提交', totalSubs:'总提交',
+    addNew:'新增', addNewSub:'登记顾客兑换', viewSub:'查看提交', viewSubSub:'查看、修改或删除记录',
+    f_eventDate:'活动日期', f_eventVenue:'活动 / 地点', f_fullName:'顾客全名', f_idType:'证件类型', ic:'身份证 IC', passport:'护照',
+    f_idNumber:'证件号码', f_currentNumber:'现有号码', f_newNumber:'新号码', f_gameId:'游戏ID', f_serverId:'服务器ID',
+    f_plan:'订购配套', f_freebie:'赠品', select:'请选择…',
+    submit:'提交', save:'保存修改', saveBtn:'保存', create:'创建', cancel:'取消', del:'删除', edit:'修改', edited:'已修改', confirm:'确认',
+    required:'必填', badIc:'IC必须为12位数字', badPassport:'只限字母和数字', badPhone:'格式：601xxxxxxxx',
+    dupId:'此证件已在本活动兑换过', dupNew:'此新号码已在本活动使用', dupGame:'此游戏ID已在本活动使用',
+    fixErrors:'请检查标红的栏位', locked:'此记录已修改过一次', saved:'提交成功', updated:'修改已保存', deleted:'已删除',
+    waTitle:'提交成功', waHint:'点击按钮，然后在WhatsApp选择联系人。', waSend:'通过WhatsApp发送', copy:'复制文字', copied:'已复制', done:'完成',
+    noSubs:'暂无提交记录', editOnce:'此记录只能修改一次，保存后将被锁定。',
+    confirmDel:'确定删除此记录？删除后无法恢复。', search:'搜索姓名、证件、号码…', editSub:'修改记录', newSub:'新兑换', mySubs:'我的提交',
+    submittedAt:'提交时间', staffLabel:'员工', dashboard:'仪表板', subsTab:'提交记录', staffTab:'员工', admins:'管理员', settings:'设置',
+    from:'从', to:'至', allEvents:'所有活动', allStaff:'所有员工', exportXlsx:'导出Excel', records:'条记录', todayL:'今天', allTime:'全部',
+    staffAccounts:'员工账号', eventsCount:'活动', byStaff:'按员工', byEvent:'按活动 / 地点', byPlan:'按配套', byFreebie:'按赠品',
+    addStaff:'新增员工', name:'姓名', email:'电邮', contact:'联系电话', resetPw:'重置密码', newPw:'新密码', currentPw:'当前密码', changePw:'修改密码',
+    addAdmin:'新增管理员', mainAdmin:'主管理员', maxAdmins:'已达5位管理员上限', onlyMain:'只有主管理员可以新增或删除管理员。',
+    pwMin8:'至少8个字符', pwMin6:'至少6个字符', wrongPw:'当前密码错误', idTaken:'此登录ID已存在', badLoginId:'不可包含空格',
+    confirmDelUser:'删除此账号？将立即登出，过往记录会保留。', pwChanged:'密码已更新',
+    mandatory:'必填栏位', mandatoryHint:'开启后，该栏位在销售表格中为必填。',
+    listEvents:'活动 / 地点列表', listPlans:'配套列表', listFreebies:'赠品列表', addItem:'添加', newItem:'输入新项目…',
+    loggedIn:'已登录', notLoggedIn:'未登录', actions:'操作', noData:'暂无数据', subsCount:'提交数', status:'状态', itemExists:'项目已存在',
+    demoBanner:'演示模式 · 数据只保存在此设备', resetDemo:'重置演示数据', resetDemoQ:'清除所有演示数据并恢复初始设置？',
+    excelMissing:'Excel工具未加载，请检查网络后重试。', welcome:'欢迎'
+  }
+};
+let lang = (() => { try { return localStorage.getItem('cdeo_lang') || 'en'; } catch { return 'en'; } })();
+const t = k => (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k;
+function setLang(l){ lang = l; try { localStorage.setItem('cdeo_lang', l); } catch {} document.documentElement.lang = l === 'zh' ? 'zh' : l; route(); }
+const langSelect = () => `<select class="lang" data-lang>
+  <option value="en" ${lang==='en'?'selected':''}>EN</option><option value="ms" ${lang==='ms'?'selected':''}>BM</option><option value="zh" ${lang==='zh'?'selected':''}>中文</option></select>`;
+
+/* ============================================================
+   2. HELPERS
+   ============================================================ */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+const pad = n => String(n).padStart(2, '0');
+const isoDate = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const fmtDate = s => s ? s.split('-').reverse().join('/') : '';
+const fmtDateTime = iso => { const d = new Date(iso); return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const greetingKey = () => { const h = new Date().getHours(); return h < 12 ? 'gm' : h < 18 ? 'ga' : 'ge'; };
+const fmtIc = v => { const d = v.replace(/\D/g, '').slice(0, 12); return [d.slice(0, 6), d.slice(6, 8), d.slice(8)].filter(Boolean).join('-'); };
+const fmtPassport = v => v.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 20);
+const normKey = v => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+const ICON = {
+  logout:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>',
+  back:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>',
+  chev:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>',
+  key:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3L21 2M16 7l3 3M18 5l2 2"/></svg>',
+  check:'<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  wa:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.4-1.5-.9-.8-1.5-1.8-1.6-2.1-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 21.8c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.7 1 1-3.6-.2-.4C2.7 15.6 2.2 13.8 2.2 12 2.2 6.6 6.6 2.2 12 2.2S21.8 6.6 21.8 12 17.4 21.8 12 21.8zM12 .1C5.4.1.1 5.4.1 12c0 2.1.6 4.1 1.6 5.9L0 24l6.3-1.7c1.7.9 3.7 1.4 5.7 1.4 6.6 0 11.9-5.3 11.9-11.9C23.9 5.4 18.6.1 12 .1z"/></svg>'
+};
+
+function toast(msg){ const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg; document.body.appendChild(el); setTimeout(() => el.remove(), 2600); }
+
+function openModal(title, body, footer = ''){
+  const ov = document.createElement('div'); ov.className = 'overlay';
+  ov.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><div class="modal-h"><h3>${esc(title)}</h3>
+    <button class="iconbtn" data-close aria-label="Close">✕</button></div><div class="modal-b">${body}</div>${footer ? `<div class="modal-f">${footer}</div>` : ''}</div>`;
+  const close = () => ov.remove();
+  ov.addEventListener('click', e => { if (e.target === ov || e.target.closest('[data-close]')) close(); });
+  document.body.appendChild(ov);
+  return { el: ov, close };
+}
+function confirmBox(msg, okLabel = t('confirm'), danger = true){
+  return new Promise(res => {
+    const m = openModal(t('confirm'), `<p style="margin:0">${esc(msg)}</p>`,
+      `<button class="btn btn-ghost" data-close>${t('cancel')}</button><button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-ok>${esc(okLabel)}</button>`);
+    $('[data-ok]', m.el).onclick = () => { m.close(); res(true); };
+    m.el.addEventListener('click', e => { if (e.target === m.el || e.target.closest('[data-close]')) res(false); });
+  });
+}
+
+/* ============================================================
+   3. DATA LAYER  (demo: localStorage — replaced by Supabase in the live build;
+      every screen only talks to Store, so the swap does not touch the UI)
+   ============================================================ */
+const FIELDS = ['eventDate','eventVenue','fullName','idType','idNumber','currentNumber','newNumber','gameId','serverId','plan','freebie'];
+const TOGGLEABLE = ['eventVenue','fullName','idNumber','currentNumber','newNumber','gameId','serverId','plan','freebie'];
+const DB_KEY = 'cdeo_demo_db', SES_KEY = 'cdeo_session';
+
+function seedDb(){
+  const now = new Date().toISOString();
+  return {
+    admins: [{ id: uid(), loginId: 'tan', password: 'Tan@0302', name: 'Tan', isMain: true, token: null, createdAt: now }],
+    users: [{ id: uid(), loginId: 'S001', password: 'demo1234', name: 'Ali Ahmad', email: 'ali@example.com', contact: '60123456789', token: null, createdAt: now }],
+    settings: {
+      mandatory: Object.fromEntries(TOGGLEABLE.map(k => [k, true])),
+      events: ['Mid Valley Megamall Roadshow', 'Sunway Pyramid Roadshow'],
+      plans: ['Hyper30','Hyper35','Power35','Power45','Power+ 55','Power+ 65','CD Postpaid 60SE','PMJ 80','PMJ 100'],
+      freebies: ['Power Bank 10000mAh', 'Gaming Mousepad', 'Tumbler']
+    },
+    submissions: []
+  };
+}
+const strip = u => { const { password, token, ...rest } = u; return { ...rest, online: !!token }; };
+
+const DemoStore = {
+  _load(){ let db = null; try { db = JSON.parse(localStorage.getItem(DB_KEY)); } catch {} if (!db) { db = seedDb(); this._save(db); } return db; },
+  _save(db){ localStorage.setItem(DB_KEY, JSON.stringify(db)); },
+  _acct(db, s){ return (s.role === 'admin' ? db.admins : db.users).find(x => x.id === s.id); },
+  _dupErrors(subs, rec, excludeId){
+    const errs = {}, same = subs.filter(s => s.id !== excludeId && (s.eventVenue || '') === (rec.eventVenue || ''));
+    if (rec.idNumber && same.some(s => normKey(s.idNumber) === normKey(rec.idNumber))) errs.idNumber = 'dupId';
+    if (rec.newNumber && same.some(s => s.newNumber === rec.newNumber)) errs.newNumber = 'dupNew';
+    if (rec.gameId && same.some(s => normKey(s.gameId) === normKey(rec.gameId))) errs.gameId = 'dupGame';
+    return Object.keys(errs).length ? errs : null;
+  },
+
+  async login(role, loginId, password){
+    const db = this._load(), list = role === 'admin' ? db.admins : db.users;
+    const u = list.find(x => x.loginId.toLowerCase() === loginId.trim().toLowerCase() && x.password === password);
+    if (!u) return null;
+    u.token = uid(); this._save(db);              // new token = any other device is logged out
+    return { role, id: u.id, token: u.token };
+  },
+  async logout(s){ const db = this._load(), u = this._acct(db, s); if (u && u.token === s.token) { u.token = null; this._save(db); } },
+  async sessionStatus(s){ const u = this._acct(this._load(), s); return !u ? 'removed' : u.token !== s.token ? 'kicked' : 'ok'; },
+  async me(s){ const u = this._acct(this._load(), s); return u ? strip(u) : null; },
+  async changeOwnPassword(s, cur, next){
+    const db = this._load(), u = this._acct(db, s);
+    if (!u || u.password !== cur) return { error: 'wrongPw' };
+    u.password = next; this._save(db); return { ok: true };
+  },
+
+  async settings(){ return this._load().settings; },
+  async saveSettings(st){ const db = this._load(); db.settings = st; this._save(db); },
+
+  async submissions(){ return this._load().submissions.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt)); },
+  async addSubmission(s, rec){
+    const db = this._load(), me = this._acct(db, s);
+    const dup = this._dupErrors(db.submissions, rec); if (dup) return { errors: dup };
+    const row = { ...rec, id: uid(), staffId: me.id, staffLoginId: me.loginId, staffName: me.name, createdAt: new Date().toISOString(), updatedAt: null, editedByStaff: false, editedByAdmin: false };
+    db.submissions.push(row); this._save(db); return { row };
+  },
+  async updateSubmission(s, id, rec){
+    const db = this._load(), row = db.submissions.find(x => x.id === id);
+    if (!row) return { error: 'deleted' };
+    if (s.role === 'sales' && (row.staffId !== s.id || row.editedByStaff)) return { error: 'locked' };
+    const dup = this._dupErrors(db.submissions, rec, id); if (dup) return { errors: dup };
+    Object.assign(row, rec, { updatedAt: new Date().toISOString() });
+    if (s.role === 'sales') row.editedByStaff = true; else row.editedByAdmin = true;
+    this._save(db); return { row };
+  },
+  async deleteSubmission(s, id){
+    const db = this._load(), i = db.submissions.findIndex(x => x.id === id);
+    if (i < 0) return; if (s.role === 'sales' && db.submissions[i].staffId !== s.id) return;
+    db.submissions.splice(i, 1); this._save(db);
+  },
+
+  async users(){ return this._load().users.map(strip); },
+  async addUser(u){
+    const db = this._load();
+    if ([...db.users, ...db.admins].some(x => x.loginId.toLowerCase() === u.loginId.toLowerCase())) return { error: 'idTaken' };
+    db.users.push({ ...u, id: uid(), token: null, createdAt: new Date().toISOString() }); this._save(db); return { ok: true };
+  },
+  async resetUserPassword(id, pw){ const db = this._load(), u = db.users.find(x => x.id === id); if (u) { u.password = pw; u.token = null; this._save(db); } },
+  async deleteUser(id){ const db = this._load(); db.users = db.users.filter(x => x.id !== id); this._save(db); },
+
+  async admins(){ return this._load().admins.map(strip); },
+  async addAdmin(s, a){
+    const db = this._load(), me = this._acct(db, s);
+    if (!me?.isMain) return { error: 'onlyMain' };
+    if (db.admins.length >= 5) return { error: 'maxAdmins' };
+    if ([...db.users, ...db.admins].some(x => x.loginId.toLowerCase() === a.loginId.toLowerCase())) return { error: 'idTaken' };
+    db.admins.push({ ...a, id: uid(), isMain: false, token: null, createdAt: new Date().toISOString() }); this._save(db); return { ok: true };
+  },
+  async resetAdminPassword(s, id, pw){ const db = this._load(); if (!this._acct(db, s)?.isMain) return; const a = db.admins.find(x => x.id === id); if (a) { a.password = pw; a.token = null; this._save(db); } },
+  async deleteAdmin(s, id){ const db = this._load(); if (!this._acct(db, s)?.isMain) return; db.admins = db.admins.filter(x => x.id !== id || x.isMain); this._save(db); },
+
+  async resetDemo(){ localStorage.removeItem(DB_KEY); }
+};
+
+/* Live store: calls the app_* functions in supabase-setup.sql */
+const CFG = window.APP_CONFIG || {};
+const LIVE = !!(CFG.SUPABASE_URL && CFG.SUPABASE_KEY);
+async function rpc(fn, args = {}){
+  const headers = { 'Content-Type': 'application/json', apikey: CFG.SUPABASE_KEY };
+  if (!CFG.SUPABASE_KEY.startsWith('sb_')) headers.Authorization = 'Bearer ' + CFG.SUPABASE_KEY;   // legacy anon key
+  const res = await fetch(`${CFG.SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/rpc/${fn}`, { method: 'POST', headers, body: JSON.stringify(args) });
+  const text = await res.text(), data = text ? JSON.parse(text) : null;
+  if (!res.ok) {
+    const msg = String(data?.message || res.status);
+    if (msg.includes('SESSION_INVALID')) setTimeout(watchSession, 0);
+    else toast('Server error: ' + msg);
+    throw new Error(msg);
+  }
+  return data;
+}
+const tok = () => session?.token;
+const RemoteStore = {
+  login: (role, loginId, password) => rpc('app_login', { p_role: role, p_login_id: loginId, p_password: password }),
+  logout: s => rpc('app_logout', { p_token: s.token }),
+  sessionStatus: s => rpc('app_session_status', { p_role: s.role, p_id: s.id, p_token: s.token }),
+  me: s => rpc('app_me', { p_token: s.token }),
+  changeOwnPassword: (s, cur, next) => rpc('app_change_password', { p_token: s.token, p_current: cur, p_new: next }),
+  settings: () => rpc('app_get_settings', { p_token: tok() }),
+  saveSettings: st => rpc('app_save_settings', { p_token: tok(), p_data: st }),
+  submissions: () => rpc('app_list_submissions', { p_token: tok() }),
+  addSubmission: (s, rec) => rpc('app_add_submission', { p_token: s.token, p_rec: rec }),
+  updateSubmission: (s, id, rec) => rpc('app_update_submission', { p_token: s.token, p_id: id, p_rec: rec }),
+  deleteSubmission: (s, id) => rpc('app_delete_submission', { p_token: s.token, p_id: id }),
+  users: () => rpc('app_list_staff', { p_token: tok() }),
+  addUser: u => rpc('app_add_staff', { p_token: tok(), p_login_id: u.loginId, p_password: u.password, p_name: u.name, p_email: u.email || '', p_contact: u.contact || '' }),
+  resetUserPassword: (id, pw) => rpc('app_reset_staff_password', { p_token: tok(), p_id: id, p_password: pw }),
+  deleteUser: id => rpc('app_delete_staff', { p_token: tok(), p_id: id }),
+  admins: () => rpc('app_list_admins', { p_token: tok() }),
+  addAdmin: (s, a) => rpc('app_add_admin', { p_token: s.token, p_login_id: a.loginId, p_password: a.password, p_name: a.name }),
+  resetAdminPassword: (s, id, pw) => rpc('app_reset_admin_password', { p_token: s.token, p_id: id, p_password: pw }),
+  deleteAdmin: (s, id) => rpc('app_delete_admin', { p_token: s.token, p_id: id })
+};
+const Store = LIVE ? RemoteStore : DemoStore;
+const demoBar = () => LIVE ? '' : `<div class="demo">${t('demoBanner')}</div>`;
+
+/* ============================================================
+   4. SESSION, ONLINE CHECK, ROUTING
+   ============================================================ */
+let session = (() => { try { return JSON.parse(sessionStorage.getItem(SES_KEY)); } catch { return null; } })();
+let view = { name: 'home' };                 // sales: home | form | done | list ; admin: tab name
+let loginMsg = null;
+const app = $('#app');
+
+function setSession(s){ session = s; try { s ? sessionStorage.setItem(SES_KEY, JSON.stringify(s)) : sessionStorage.removeItem(SES_KEY); } catch {} }
+async function doLogout(){ if (session) await Store.logout(session); setSession(null); view = { name: 'home' }; route(); }
+async function watchSession(){
+  if (!session || !navigator.onLine) return;
+  let st; try { st = await Store.sessionStatus(session); } catch { return; }
+  if (st !== 'ok') { setSession(null); loginMsg = { type: 'info', key: st === 'kicked' ? 'kicked' : 'removed' }; document.querySelectorAll('.overlay').forEach(o => o.remove()); route(); }
+}
+setInterval(watchSession, LIVE ? 8000 : 3000);
+window.addEventListener('storage', watchSession);
+document.addEventListener('visibilitychange', watchSession);
+
+function updateOnline(){ $('#offline-msg').textContent = t('offline'); $('#offline').classList.toggle('hidden', navigator.onLine); }
+window.addEventListener('online', updateOnline); window.addEventListener('offline', updateOnline);
+
+function route(){
+  updateOnline();
+  if (!session) return renderLogin();
+  return session.role === 'admin' ? renderAdmin() : renderSales();
+}
+document.addEventListener('change', e => { if (e.target.matches('[data-lang]')) setLang(e.target.value); });
+
+/* ============================================================
+   5. LOGIN
+   ============================================================ */
+let loginRole = 'sales';
+function renderLogin(){
+  app.innerHTML = `${demoBar()}
+  <div class="login"><div class="login-card">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">${langSelect()}</div>
+    <img class="login-logo" src="logo-wide.png" alt="CelcomDigi">
+    <h1>Event Ops</h1>
+    <div class="card">
+      <div class="seg" style="margin-bottom:16px">
+        <button type="button" data-role="sales" class="${loginRole === 'sales' ? 'on' : ''}">${t('salesLogin')}</button>
+        <button type="button" data-role="admin" class="${loginRole === 'admin' ? 'on' : ''}">${t('adminLogin')}</button>
+      </div>
+      ${loginMsg ? `<div class="alert ${loginMsg.type}">${t(loginMsg.key)}</div>` : ''}
+      <form id="loginForm" autocomplete="off">
+        <div class="field"><label>${t('loginId')}</label><input name="id" autocapitalize="none" autocorrect="off" required></div>
+        <div class="field"><label>${t('password')}</label><input name="pw" type="password" required></div>
+        <button class="btn btn-primary btn-block" type="submit">${t('login')}</button>
+      </form>
+    </div>
+  </div></div>`;
+  $$('[data-role]').forEach(b => b.onclick = () => { loginRole = b.dataset.role; loginMsg = null; renderLogin(); });
+  $('#loginForm').onsubmit = async e => {
+    e.preventDefault();
+    if (!navigator.onLine) return updateOnline();
+    const f = new FormData(e.target), btn = $('button[type=submit]', e.target);
+    btn.disabled = true;
+    let s; try { s = await Store.login(loginRole, f.get('id'), f.get('pw')); } catch { btn.disabled = false; return; }
+    if (!s) { loginMsg = { type: 'err', key: 'invalidLogin' }; return renderLogin(); }
+    loginMsg = null; setSession(s); view = { name: loginRole === 'admin' ? 'dashboard' : 'home' }; route();
+  };
+}
+
+/* ============================================================
+   6. REDEMPTION FORM (shared by sales + admin)
+   ============================================================ */
+function formHTML(st, r){
+  r = r || { eventDate: isoDate(new Date()), idType: 'IC' };
+  const req = k => st.mandatory[k] ? ' <span class="req">*</span>' : '';
+  const opts = (list, val) => `<option value="">${t('select')}</option>` + list.map(x => `<option ${x === val ? 'selected' : ''}>${esc(x)}</option>`).join('')
+    + (val && !list.includes(val) ? `<option selected>${esc(val)}</option>` : '');
+  const isIc = r.idType !== 'Passport';
+  return `<form class="rform" novalidate>
+    <div class="row2">
+      <div class="field" data-f="eventDate"><label>${t('f_eventDate')} <span class="req">*</span></label><input type="date" name="eventDate" value="${esc(r.eventDate)}"></div>
+      <div class="field" data-f="eventVenue"><label>${t('f_eventVenue')}${req('eventVenue')}</label><select name="eventVenue">${opts(st.events, r.eventVenue)}</select></div>
+    </div>
+    <div class="field" data-f="fullName"><label>${t('f_fullName')}${req('fullName')}</label><input name="fullName" value="${esc(r.fullName)}" autocomplete="off" style="text-transform:uppercase"></div>
+    <div class="field"><label>${t('f_idType')}</label>
+      <div class="seg" data-idtype><button type="button" data-v="IC" class="${isIc ? 'on' : ''}">${t('ic')}</button><button type="button" data-v="Passport" class="${!isIc ? 'on' : ''}">${t('passport')}</button></div>
+      <input type="hidden" name="idType" value="${isIc ? 'IC' : 'Passport'}"></div>
+    <div class="field" data-f="idNumber"><label>${t('f_idNumber')}${req('idNumber')}</label>
+      <input name="idNumber" value="${esc(r.idNumber)}" autocomplete="off" inputmode="${isIc ? 'numeric' : 'text'}" placeholder="${isIc ? 'xxxxxx-xx-xxxx' : 'A12345678'}"></div>
+    <div class="row2">
+      <div class="field" data-f="currentNumber"><label>${t('f_currentNumber')}${req('currentNumber')}</label><input name="currentNumber" value="${esc(r.currentNumber)}" inputmode="numeric" placeholder="601xxxxxxxx" data-phone></div>
+      <div class="field" data-f="newNumber"><label>${t('f_newNumber')}${req('newNumber')}</label><input name="newNumber" value="${esc(r.newNumber)}" inputmode="numeric" placeholder="601xxxxxxxx" data-phone></div>
+    </div>
+    <div class="row2">
+      <div class="field" data-f="gameId"><label>${t('f_gameId')}${req('gameId')}</label><input name="gameId" value="${esc(r.gameId)}" autocomplete="off"></div>
+      <div class="field" data-f="serverId"><label>${t('f_serverId')}${req('serverId')}</label><input name="serverId" value="${esc(r.serverId)}" autocomplete="off"></div>
+    </div>
+    <div class="field" data-f="plan"><label>${t('f_plan')}${req('plan')}</label><select name="plan">${opts(st.plans, r.plan)}</select></div>
+    <div class="field" data-f="freebie"><label>${t('f_freebie')}${req('freebie')}</label><select name="freebie">${opts(st.freebies, r.freebie)}</select></div>
+  </form>`;
+}
+function bindForm(root){
+  const idIn = $('[name=idNumber]', root), typeIn = $('[name=idType]', root);
+  const fmt = () => { idIn.value = typeIn.value === 'IC' ? fmtIc(idIn.value) : fmtPassport(idIn.value); };
+  $$('[data-idtype] button', root).forEach(b => b.onclick = () => {
+    if (typeIn.value === b.dataset.v) return;
+    typeIn.value = b.dataset.v; $$('[data-idtype] button', root).forEach(x => x.classList.toggle('on', x === b));
+    const ic = b.dataset.v === 'IC'; idIn.value = ''; idIn.inputMode = ic ? 'numeric' : 'text'; idIn.placeholder = ic ? 'xxxxxx-xx-xxxx' : 'A12345678'; idIn.focus();
+  });
+  idIn.addEventListener('input', fmt);
+  $$('[data-phone]', root).forEach(p => p.addEventListener('input', () => { p.value = p.value.replace(/\D/g, '').slice(0, 12); }));
+  const nm = $('[name=fullName]', root); nm.addEventListener('blur', () => { nm.value = nm.value.toUpperCase().replace(/\s+/g, ' ').trim(); });
+}
+function readForm(root){
+  const v = Object.fromEntries(new FormData($('form.rform', root)));
+  for (const k in v) v[k] = String(v[k]).trim();
+  v.fullName = v.fullName.toUpperCase().replace(/\s+/g, ' ');
+  return v;
+}
+function validate(v, st){
+  const e = {};
+  if (!v.eventDate) e.eventDate = 'required';
+  TOGGLEABLE.forEach(k => { if (st.mandatory[k] && !v[k]) e[k] = 'required'; });
+  if (v.idNumber && !e.idNumber) {
+    if (v.idType === 'IC' && v.idNumber.replace(/\D/g, '').length !== 12) e.idNumber = 'badIc';
+    if (v.idType === 'Passport' && !/^[A-Z0-9]+$/.test(v.idNumber)) e.idNumber = 'badPassport';
+  }
+  ['currentNumber', 'newNumber'].forEach(k => { if (v[k] && !/^601\d{8,9}$/.test(v[k])) e[k] = 'badPhone'; });
+  return e;
+}
+function showErrors(root, errs){
+  $$('.field', root).forEach(f => { f.classList.remove('err'); $('.msg', f)?.remove(); });
+  Object.entries(errs).forEach(([k, key]) => {
+    const f = $(`[data-f="${k}"]`, root); if (!f) return;
+    f.classList.add('err'); f.insertAdjacentHTML('beforeend', `<div class="msg">${t(key)}</div>`);
+  });
+  const first = $('.field.err', root); if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (Object.keys(errs).length) toast(t('fixErrors'));
+}
+
+function waText(r){
+  return [
+    '*CelcomDigi Event Ops - Redemption*', '',
+    `Event Date: ${fmtDate(r.eventDate)}`,
+    `Event/Venue: ${r.eventVenue || '-'}`,
+    `Customer Name: ${r.fullName || '-'}`,
+    `${r.idType === 'Passport' ? 'Passport' : 'IC'} No: ${r.idNumber || '-'}`,
+    `Current Number: ${r.currentNumber || '-'}`,
+    `New Number: ${r.newNumber || '-'}`,
+    `Game ID: ${r.gameId || '-'}`,
+    `Server ID: ${r.serverId || '-'}`,
+    `Plan Subscribed: ${r.plan || '-'}`,
+    `Freebie: ${r.freebie || '-'}`, '',
+    `Submitted by: ${r.staffName} (${r.staffLoginId})`,
+    `Submitted at: ${fmtDateTime(r.createdAt)}`
+  ].join('\n');
+}
+const waLink = r => 'https://wa.me/?text=' + encodeURIComponent(waText(r));
+
+/* ============================================================
+   7. SALES SCREENS
+   ============================================================ */
+function salesTop(){
+  return `${demoBar()}
+  <div class="topbar narrow"><div class="topbar-in"><img src="logo-wide.png" alt="CelcomDigi"><div class="grow"></div>${langSelect()}
+    <button class="iconbtn" data-logout aria-label="${t('logout')}">${ICON.logout}</button></div></div>`;
+}
+function bindTop(){ $('[data-logout]')?.addEventListener('click', doLogout); }
+const pageTitle = (title, backTo) => `<div class="page-title"><button class="back" data-back="${backTo}" aria-label="${t('back')}">${ICON.back}</button><h2>${esc(title)}</h2></div>`;
+function bindBack(){ $$('[data-back]').forEach(b => b.onclick = () => { view = { name: b.dataset.back }; renderSales(); }); }
+
+async function renderSales(){
+  const me = await Store.me(session); if (!me) return watchSession();
+  const fn = { home: salesHome, form: salesForm, done: salesDone, list: salesList }[view.name] || salesHome;
+  window.scrollTo(0, 0);
+  return fn(me);
+}
+
+async function salesHome(me){
+  const mine = (await Store.submissions()).filter(s => s.staffId === me.id), today = isoDate(new Date());
+  const todayCount = mine.filter(s => isoDate(new Date(s.createdAt)) === today).length;
+  const d = new Date().toLocaleDateString(lang === 'zh' ? 'zh-CN' : lang === 'ms' ? 'ms-MY' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  app.innerHTML = salesTop() + `<div class="wrap">
+    <div class="hero"><div class="g">${t(greetingKey())},</div><div class="n">${esc(me.name)}</div><div class="d">${esc(d)}</div></div>
+    <div class="stats">
+      <div class="stat"><div class="l">${t('todaySubs')}</div><div class="v">${todayCount}</div></div>
+      <div class="stat"><div class="l">${t('totalSubs')}</div><div class="v">${mine.length}</div></div>
+    </div>
+    <button class="action primary" data-go="form"><div class="ic">${ICON.plus}</div><div><div class="t">${t('addNew')}</div><div class="s">${t('addNewSub')}</div></div><span class="chev">${ICON.chev}</span></button>
+    <button class="action secondary" data-go="list"><div class="ic">${ICON.list}</div><div><div class="t">${t('viewSub')}</div><div class="s">${t('viewSubSub')}</div></div><span class="chev">${ICON.chev}</span></button>
+  </div>`;
+  bindTop();
+  $$('[data-go]').forEach(b => b.onclick = () => { view = { name: b.dataset.go }; renderSales(); });
+}
+
+async function salesForm(me){
+  const st = await Store.settings(), editing = view.rec;
+  app.innerHTML = salesTop() + `<div class="wrap">
+    ${pageTitle(editing ? t('editSub') : t('newSub'), editing ? 'list' : 'home')}
+    ${editing ? `<div class="alert info">${t('editOnce')}</div>` : ''}
+    <div class="card" id="fcard">${formHTML(st, editing)}</div>
+  </div>
+  <div class="sticky-foot"><div class="in"><button class="btn btn-primary btn-block" id="submitBtn">${editing ? t('save') : t('submit')}</button></div></div>`;
+  bindTop(); bindBack();
+  const card = $('#fcard'); bindForm(card);
+  $('#submitBtn').onclick = async () => {
+    if (!navigator.onLine) return updateOnline();
+    const v = readForm(card), errs = validate(v, st);
+    if (Object.keys(errs).length) return showErrors(card, errs);
+    const btn = $('#submitBtn'); btn.disabled = true;
+    let res;
+    try { res = editing ? await Store.updateSubmission(session, editing.id, v) : await Store.addSubmission(session, v); }
+    catch { return; } finally { btn.disabled = false; }
+    if (res.errors) return showErrors(card, res.errors);
+    if (res.error) { toast(t(res.error === 'locked' ? 'locked' : 'deleted')); view = { name: 'list' }; return renderSales(); }
+    toast(editing ? t('updated') : t('saved'));
+    view = editing ? { name: 'list' } : { name: 'done', rec: res.row };
+    renderSales();
+  };
+}
+
+function salesDone(){
+  const r = view.rec;
+  app.innerHTML = salesTop() + `<div class="wrap">
+    <div class="card" style="text-align:center">
+      <div class="success-ic">${ICON.check}</div>
+      <h2 style="margin:0 0 4px;color:var(--navy);font-size:20px">${t('waTitle')}</h2>
+      <p class="muted" style="margin:0 0 14px;font-size:14px">${t('waHint')}</p>
+      <div class="wa-box" style="text-align:left">${esc(waText(r))}</div>
+    </div>
+  </div>
+  <div class="sticky-foot"><div class="in" style="flex-direction:column">
+    <a class="btn btn-wa btn-block" href="${waLink(r)}" target="_blank" rel="noopener">${ICON.wa} ${t('waSend')}</a>
+    <div style="display:flex;gap:10px"><button class="btn btn-ghost" style="flex:1" id="copyBtn">${t('copy')}</button><button class="btn btn-navy" style="flex:1" id="doneBtn">${t('done')}</button></div>
+  </div></div>`;
+  bindTop();
+  $('#copyBtn').onclick = async () => { try { await navigator.clipboard.writeText(waText(r)); toast(t('copied')); } catch { toast('—'); } };
+  $('#doneBtn').onclick = () => { view = { name: 'home' }; renderSales(); };
+  $('.wrap').style.paddingBottom = '170px';
+}
+
+function subCard(r, actions){
+  return `<div class="sub">
+    <div class="top"><div><div class="nm">${esc(r.fullName || '-')}</div><div class="meta">${esc(r.idType === 'Passport' ? t('passport') : t('ic'))}: ${esc(r.idNumber || '-')}</div></div>
+      ${r.editedByStaff ? `<span class="badge y">${t('edited')}</span>` : ''}</div>
+    <dl class="kv">
+      <dt>${t('f_eventDate')}</dt><dd>${fmtDate(r.eventDate)}</dd>
+      <dt>${t('f_eventVenue')}</dt><dd>${esc(r.eventVenue || '-')}</dd>
+      <dt>${t('f_currentNumber')}</dt><dd>${esc(r.currentNumber || '-')}</dd>
+      <dt>${t('f_newNumber')}</dt><dd>${esc(r.newNumber || '-')}</dd>
+      <dt>${t('f_gameId')} / ${t('f_serverId')}</dt><dd>${esc(r.gameId || '-')} / ${esc(r.serverId || '-')}</dd>
+      <dt>${t('f_plan')}</dt><dd>${esc(r.plan || '-')}</dd>
+      <dt>${t('f_freebie')}</dt><dd>${esc(r.freebie || '-')}</dd>
+      <dt>${t('submittedAt')}</dt><dd>${fmtDateTime(r.createdAt)}</dd>
+    </dl>
+    <div class="acts">${actions}</div>
+  </div>`;
+}
+
+async function salesList(me){
+  const mine = (await Store.submissions()).filter(s => s.staffId === me.id);
+  const q = (view.q || '').toUpperCase();
+  const rows = q ? mine.filter(r => [r.fullName, r.idNumber, r.newNumber, r.currentNumber, r.gameId].some(x => String(x || '').toUpperCase().includes(q))) : mine;
+  app.innerHTML = salesTop() + `<div class="wrap">
+    ${pageTitle(t('mySubs'), 'home')}
+    <div class="field"><input class="input" id="q" placeholder="${t('search')}" value="${esc(view.q || '')}"></div>
+    <p class="muted" style="font-size:13px;margin:-4px 0 10px">${rows.length} ${t('records')}</p>
+    ${rows.length ? rows.map(r => subCard(r, `
+      <button class="btn btn-ghost btn-sm" data-edit="${r.id}" ${r.editedByStaff ? 'disabled' : ''}>${r.editedByStaff ? '🔒 ' + t('edited') : t('edit')}</button>
+      <a class="btn btn-sm btn-wa" href="${waLink(r)}" target="_blank" rel="noopener">${ICON.wa}</a>
+      <button class="btn btn-sm btn-ghost" style="color:var(--danger);margin-left:auto" data-del="${r.id}">${t('del')}</button>`)).join('')
+      : `<div class="empty">${t('noSubs')}</div>`}
+  </div>`;
+  bindTop(); bindBack();
+  const qi = $('#q'); qi.oninput = () => { view.q = qi.value; const pos = qi.selectionStart; salesList(me).then(() => { const n = $('#q'); n.focus(); n.setSelectionRange(pos, pos); }); };
+  $$('[data-edit]').forEach(b => b.onclick = () => { view = { name: 'form', rec: mine.find(r => r.id === b.dataset.edit) }; renderSales(); });
+  $$('[data-del]').forEach(b => b.onclick = async () => {
+    if (!(await confirmBox(t('confirmDel'), t('del')))) return;
+    await Store.deleteSubmission(session, b.dataset.del); toast(t('deleted')); salesList(me);
+  });
+}
+
+/* ============================================================
+   8. BACK OFFICE
+   ============================================================ */
+const adminFilter = { from: '', to: '', event: '', staff: '', q: '' };
+let dashRange = 'today';
+
+async function renderAdmin(){
+  const me = await Store.me(session); if (!me) return watchSession();
+  const tabs = [['dashboard', t('dashboard')], ['subs', t('subsTab')], ['staff', t('staffTab')], ['admins', t('admins')], ['settings', t('settings')]];
+  if (!tabs.some(x => x[0] === view.name)) view = { name: 'dashboard' };
+  app.innerHTML = `${demoBar()}
+  <div class="topbar"><div class="topbar-in"><img src="logo-wide.png" alt="CelcomDigi">
+    <span class="badge n" style="margin-left:2px">Back Office</span><div class="grow"></div>
+    <span class="muted" style="font-size:13px;font-weight:600">${esc(me.name)}</span>
+    ${langSelect()}
+    <button class="iconbtn" data-pw aria-label="${t('changePw')}" title="${t('changePw')}">${ICON.key}</button>
+    <button class="iconbtn" data-logout aria-label="${t('logout')}" title="${t('logout')}">${ICON.logout}</button></div></div>
+  <div class="wrap wide">
+    <div class="tabs">${tabs.map(([k, l]) => `<button class="tab ${view.name === k ? 'on' : ''}" data-tab="${k}">${l}</button>`).join('')}</div>
+    <div id="tabBody" style="margin-top:12px"></div>
+  </div>`;
+  bindTop();
+  $('[data-pw]').onclick = () => changeOwnPwModal();
+  $$('[data-tab]').forEach(b => b.onclick = () => { view = { name: b.dataset.tab }; renderAdmin(); });
+  const body = $('#tabBody');
+  ({ dashboard: adminDashboard, subs: adminSubs, staff: adminStaff, admins: adminAdmins, settings: adminSettings })[view.name](body, me);
+}
+
+function bars(title, map){
+  const e = Object.entries(map).sort((a, b) => b[1] - a[1]), max = e[0]?.[1] || 1;
+  return `<div class="card"><h3>${esc(title)}</h3>${e.length ? e.map(([k, v]) => `<div class="bar"><div class="bar-top"><span>${esc(k || '-')}</span><b>${v}</b></div>
+    <div class="track"><div class="fill" style="width:${(v / max) * 100}%"></div></div></div>`).join('') : `<p class="muted" style="margin:0">${t('noData')}</p>`}</div>`;
+}
+const countBy = (rows, f) => rows.reduce((m, r) => { const k = f(r) || '-'; m[k] = (m[k] || 0) + 1; return m; }, {});
+
+async function adminDashboard(body){
+  const all = await Store.submissions(), users = await Store.users(), st = await Store.settings(), today = isoDate(new Date());
+  const todays = all.filter(r => isoDate(new Date(r.createdAt)) === today), rows = dashRange === 'today' ? todays : all;
+  body.innerHTML = `
+    <div class="kpis">
+      <div class="stat"><div class="l">${t('todaySubs')}</div><div class="v">${todays.length}</div></div>
+      <div class="stat"><div class="l">${t('totalSubs')}</div><div class="v">${all.length}</div></div>
+      <div class="stat"><div class="l">${t('staffAccounts')}</div><div class="v">${users.length}</div></div>
+      <div class="stat"><div class="l">${t('eventsCount')}</div><div class="v">${st.events.length}</div></div>
+    </div>
+    <div class="seg" style="max-width:300px;margin-bottom:14px">
+      <button data-r="today" class="${dashRange === 'today' ? 'on' : ''}">${t('todayL')}</button><button data-r="all" class="${dashRange === 'all' ? 'on' : ''}">${t('allTime')}</button></div>
+    <div class="grid2">
+      ${bars(t('byStaff'), countBy(rows, r => r.staffName))}
+      ${bars(t('byEvent'), countBy(rows, r => r.eventVenue))}
+      ${bars(t('byPlan'), countBy(rows, r => r.plan))}
+      ${bars(t('byFreebie'), countBy(rows, r => r.freebie))}
+    </div>`;
+  $$('[data-r]', body).forEach(b => b.onclick = () => { dashRange = b.dataset.r; adminDashboard(body); });
+}
+
+function filterSubs(all){
+  const f = adminFilter, q = f.q.toUpperCase();
+  return all.filter(r => (!f.from || r.eventDate >= f.from) && (!f.to || r.eventDate <= f.to) && (!f.event || r.eventVenue === f.event) && (!f.staff || r.staffId === f.staff)
+    && (!q || [r.fullName, r.idNumber, r.newNumber, r.currentNumber, r.gameId, r.staffName].some(x => String(x || '').toUpperCase().includes(q))));
+}
+
+async function adminSubs(body){
+  const all = await Store.submissions(), st = await Store.settings(), users = await Store.users();
+  const staffOpts = [...new Map([...users.map(u => [u.id, u.name]), ...all.map(r => [r.staffId, r.staffName])]).entries()];
+  const rows = filterSubs(all);
+  body.innerHTML = `
+    <div class="card" style="margin-bottom:12px">
+      <div class="toolbar">
+        <div class="field"><label>${t('from')}</label><input type="date" data-fl="from" value="${adminFilter.from}"></div>
+        <div class="field"><label>${t('to')}</label><input type="date" data-fl="to" value="${adminFilter.to}"></div>
+        <div class="field"><label>${t('f_eventVenue')}</label><select data-fl="event"><option value="">${t('allEvents')}</option>${[...new Set([...st.events, ...all.map(r => r.eventVenue).filter(Boolean)])].map(e => `<option ${e === adminFilter.event ? 'selected' : ''}>${esc(e)}</option>`).join('')}</select></div>
+        <div class="field"><label>${t('staffLabel')}</label><select data-fl="staff"><option value="">${t('allStaff')}</option>${staffOpts.map(([id, n]) => `<option value="${id}" ${id === adminFilter.staff ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>
+        <div class="field" style="flex:2;min-width:200px"><label>&nbsp;</label><input data-fl="q" placeholder="${t('search')}" value="${esc(adminFilter.q)}"></div>
+        <button class="btn btn-primary" id="xlsBtn" style="height:42px">⬇ ${t('exportXlsx')}</button>
+      </div>
+      <div class="muted" style="font-size:13px">${rows.length} ${t('records')}</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>${t('submittedAt')}</th><th>${t('f_eventDate')}</th><th>${t('f_eventVenue')}</th><th>${t('f_fullName')}</th><th>${t('f_idNumber')}</th><th>${t('f_currentNumber')}</th><th>${t('f_newNumber')}</th><th>${t('f_gameId')}</th><th>${t('f_serverId')}</th><th>${t('f_plan')}</th><th>${t('f_freebie')}</th><th>${t('staffLabel')}</th><th>${t('actions')}</th></tr></thead>
+      <tbody>${rows.length ? rows.map(r => `<tr>
+        <td>${fmtDateTime(r.createdAt)}</td><td>${fmtDate(r.eventDate)}</td><td>${esc(r.eventVenue)}</td>
+        <td><b>${esc(r.fullName)}</b> ${r.editedByStaff ? `<span class="badge y">${t('edited')}</span>` : ''}</td>
+        <td>${esc(r.idType === 'Passport' ? 'P' : 'IC')}: ${esc(r.idNumber)}</td><td>${esc(r.currentNumber)}</td><td>${esc(r.newNumber)}</td>
+        <td>${esc(r.gameId)}</td><td>${esc(r.serverId)}</td><td>${esc(r.plan)}</td><td>${esc(r.freebie)}</td><td>${esc(r.staffName)}</td>
+        <td><div class="acts"><button class="btn btn-ghost btn-sm" data-edit="${r.id}">${t('edit')}</button><button class="btn btn-ghost btn-sm" style="color:var(--danger)" data-del="${r.id}">${t('del')}</button></div></td>
+      </tr>`).join('') : `<tr><td colspan="13" class="empty">${t('noSubs')}</td></tr>`}</tbody>
+    </table></div>`;
+  $$('[data-fl]', body).forEach(i => i.addEventListener(i.dataset.fl === 'q' ? 'change' : 'input', () => { adminFilter[i.dataset.fl] = i.value; adminSubs(body); }));
+  $('#xlsBtn').onclick = () => exportXlsx(rows);
+  $$('[data-edit]', body).forEach(b => b.onclick = () => adminEditModal(rows.find(r => r.id === b.dataset.edit), st, () => adminSubs(body)));
+  $$('[data-del]', body).forEach(b => b.onclick = async () => {
+    if (!(await confirmBox(t('confirmDel'), t('del')))) return;
+    await Store.deleteSubmission(session, b.dataset.del); toast(t('deleted')); adminSubs(body);
+  });
+}
+
+function adminEditModal(rec, st, after){
+  const m = openModal(t('editSub'), formHTML(st, rec), `<button class="btn btn-ghost" data-close>${t('cancel')}</button><button class="btn btn-primary" data-save>${t('save')}</button>`);
+  bindForm(m.el);
+  $('[data-save]', m.el).onclick = async () => {
+    const v = readForm(m.el), errs = validate(v, st);
+    if (Object.keys(errs).length) return showErrors(m.el, errs);
+    const res = await Store.updateSubmission(session, rec.id, v);
+    if (res.errors) return showErrors(m.el, res.errors);
+    m.close(); toast(t('updated')); after();
+  };
+}
+
+function exportXlsx(rows){
+  if (!window.XLSX) return toast(t('excelMissing'));
+  const data = rows.slice().reverse().map((r, i) => ({
+    'No': i + 1, 'Submitted At': fmtDateTime(r.createdAt), 'Event Date': fmtDate(r.eventDate), 'Event / Venue': r.eventVenue || '',
+    'Customer Full Name': r.fullName || '', 'ID Type': r.idType, 'ID Number': r.idNumber || '', 'Current Number': r.currentNumber || '', 'New Number': r.newNumber || '',
+    'Game ID': r.gameId || '', 'Server ID': r.serverId || '', 'Plan Subscribed': r.plan || '', 'Freebie': r.freebie || '',
+    'Staff ID': r.staffLoginId, 'Staff Name': r.staffName, 'Edited by Staff': r.editedByStaff ? 'Yes' : 'No', 'Last Updated': r.updatedAt ? fmtDateTime(r.updatedAt) : ''
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws['!cols'] = Object.keys(data[0] || { No: 1 }).map(k => ({ wch: Math.max(k.length + 2, ...data.map(d => String(d[k]).length + 2)) }));
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Submissions');
+  const f = adminFilter;
+  XLSX.writeFile(wb, `CelcomDigi_EventOps_${f.from || 'start'}_to_${f.to || isoDate(new Date())}.xlsx`);
+}
+
+function accountModal(title, withContact, onCreate){
+  const m = openModal(title, `<form id="accForm" novalidate>
+    <div class="field" data-f="loginId"><label>${t('loginId')} <span class="req">*</span></label><input name="loginId" autocapitalize="none"></div>
+    <div class="field" data-f="password"><label>${t('password')} <span class="req">*</span></label><input name="password" type="text" autocomplete="off"><div class="hint">${withContact ? t('pwMin6') : t('pwMin8')}</div></div>
+    <div class="field" data-f="name"><label>${t('name')} <span class="req">*</span></label><input name="name"></div>
+    ${withContact ? `<div class="field" data-f="email"><label>${t('email')}</label><input name="email" type="email"></div>
+    <div class="field" data-f="contact"><label>${t('contact')}</label><input name="contact" inputmode="numeric" placeholder="601xxxxxxxx"></div>` : ''}
+  </form>`, `<button class="btn btn-ghost" data-close>${t('cancel')}</button><button class="btn btn-primary" data-save>${t('create')}</button>`);
+  $('[data-save]', m.el).onclick = async () => {
+    const v = Object.fromEntries([...new FormData($('#accForm', m.el))].map(([k, x]) => [k, String(x).trim()])), e = {};
+    if (!v.loginId) e.loginId = 'required'; else if (/\s/.test(v.loginId)) e.loginId = 'badLoginId';
+    if (v.password.length < (withContact ? 6 : 8)) e.password = withContact ? 'pwMin6' : 'pwMin8';
+    if (!v.name) e.name = 'required';
+    if (Object.keys(e).length) return showErrors(m.el, e);
+    const res = await onCreate(v);
+    if (res.error) return res.error === 'idTaken' ? showErrors(m.el, { loginId: 'idTaken' }) : toast(t(res.error));
+    m.close();
+  };
+}
+function resetPwModal(minLen, onSave){
+  const m = openModal(t('resetPw'), `<div class="field" data-f="pw"><label>${t('newPw')}</label><input id="npw" type="text" autocomplete="off"><div class="hint">${t(minLen === 8 ? 'pwMin8' : 'pwMin6')}</div></div>`,
+    `<button class="btn btn-ghost" data-close>${t('cancel')}</button><button class="btn btn-primary" data-save>${t('saveBtn')}</button>`);
+  $('[data-save]', m.el).onclick = async () => {
+    const pw = $('#npw', m.el).value; if (pw.length < minLen) return showErrors(m.el, { pw: minLen === 8 ? 'pwMin8' : 'pwMin6' });
+    await onSave(pw); m.close(); toast(t('pwChanged'));
+  };
+}
+function changeOwnPwModal(){
+  const m = openModal(t('changePw'), `<div class="field" data-f="cur"><label>${t('currentPw')}</label><input id="cpw" type="password"></div>
+    <div class="field" data-f="nw"><label>${t('newPw')}</label><input id="npw" type="password"><div class="hint">${t('pwMin8')}</div></div>`,
+    `<button class="btn btn-ghost" data-close>${t('cancel')}</button><button class="btn btn-primary" data-save>${t('saveBtn')}</button>`);
+  $('[data-save]', m.el).onclick = async () => {
+    const cur = $('#cpw', m.el).value, nw = $('#npw', m.el).value;
+    if (nw.length < 8) return showErrors(m.el, { nw: 'pwMin8' });
+    const res = await Store.changeOwnPassword(session, cur, nw);
+    if (res.error) return showErrors(m.el, { cur: 'wrongPw' });
+    m.close(); toast(t('pwChanged'));
+  };
+}
+
+async function adminStaff(body){
+  const users = await Store.users(), subs = await Store.submissions();
+  body.innerHTML = `<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-primary" id="addU">＋ ${t('addStaff')}</button></div>
+    <div class="table-wrap"><table><thead><tr><th>${t('loginId')}</th><th>${t('name')}</th><th>${t('email')}</th><th>${t('contact')}</th><th>${t('subsCount')}</th><th>${t('status')}</th><th>${t('actions')}</th></tr></thead>
+    <tbody>${users.length ? users.map(u => `<tr><td><b>${esc(u.loginId)}</b></td><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${esc(u.contact)}</td>
+      <td>${subs.filter(s => s.staffId === u.id).length}</td><td>${u.online ? `<span class="badge g">● ${t('loggedIn')}</span>` : `<span class="badge n">${t('notLoggedIn')}</span>`}</td>
+      <td><div class="acts"><button class="btn btn-ghost btn-sm" data-reset="${u.id}">${t('resetPw')}</button><button class="btn btn-ghost btn-sm" style="color:var(--danger)" data-del="${u.id}">${t('del')}</button></div></td></tr>`).join('')
+      : `<tr><td colspan="7" class="empty">${t('noData')}</td></tr>`}</tbody></table></div>`;
+  $('#addU').onclick = () => accountModal(t('addStaff'), true, async v => { const r = await Store.addUser(v); if (r.ok) adminStaff(body); return r; });
+  $$('[data-reset]', body).forEach(b => b.onclick = () => resetPwModal(6, pw => Store.resetUserPassword(b.dataset.reset, pw).then(() => adminStaff(body))));
+  $$('[data-del]', body).forEach(b => b.onclick = async () => {
+    if (!(await confirmBox(t('confirmDelUser'), t('del')))) return;
+    await Store.deleteUser(b.dataset.del); toast(t('deleted')); adminStaff(body);
+  });
+}
+
+async function adminAdmins(body, me){
+  const admins = await Store.admins();
+  body.innerHTML = `
+    ${!me.isMain ? `<div class="alert info">${t('onlyMain')}</div>` : ''}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span class="muted">${admins.length} / 5</span>
+      ${me.isMain ? `<button class="btn btn-primary" id="addA" ${admins.length >= 5 ? 'disabled' : ''}>＋ ${t('addAdmin')}</button>` : ''}</div>
+    <div class="table-wrap"><table><thead><tr><th>${t('loginId')}</th><th>${t('name')}</th><th>${t('status')}</th>${me.isMain ? `<th>${t('actions')}</th>` : ''}</tr></thead>
+    <tbody>${admins.map(a => `<tr><td><b>${esc(a.loginId)}</b> ${a.isMain ? `<span class="badge">${t('mainAdmin')}</span>` : ''}</td><td>${esc(a.name)}</td>
+      <td>${a.online ? `<span class="badge g">● ${t('loggedIn')}</span>` : `<span class="badge n">${t('notLoggedIn')}</span>`}</td>
+      ${me.isMain ? `<td>${a.isMain ? '' : `<div class="acts"><button class="btn btn-ghost btn-sm" data-reset="${a.id}">${t('resetPw')}</button><button class="btn btn-ghost btn-sm" style="color:var(--danger)" data-del="${a.id}">${t('del')}</button></div>`}</td>` : ''}</tr>`).join('')}</tbody></table></div>`;
+  if (!me.isMain) return;
+  $('#addA').onclick = () => accountModal(t('addAdmin'), false, async v => { const r = await Store.addAdmin(session, v); if (r.ok) adminAdmins(body, me); return r; });
+  $$('[data-reset]', body).forEach(b => b.onclick = () => resetPwModal(8, pw => Store.resetAdminPassword(session, b.dataset.reset, pw).then(() => adminAdmins(body, me))));
+  $$('[data-del]', body).forEach(b => b.onclick = async () => {
+    if (!(await confirmBox(t('confirmDelUser'), t('del')))) return;
+    await Store.deleteAdmin(session, b.dataset.del); toast(t('deleted')); adminAdmins(body, me);
+  });
+}
+
+async function adminSettings(body, me){
+  const st = await Store.settings();
+  const listCard = (key, title) => `<div class="card"><h3>${title}</h3>
+    <div class="chips">${st[key].map((x, i) => `<div class="chip"><span>${esc(x)}</span><button data-rm="${key}:${i}" aria-label="${t('del')}">×</button></div>`).join('') || `<p class="muted" style="margin:0">${t('noData')}</p>`}</div>
+    <div class="add-row"><input data-new="${key}" placeholder="${t('newItem')}"><button class="btn btn-primary btn-sm" style="height:42px" data-add="${key}">${t('addItem')}</button></div></div>`;
+  body.innerHTML = `<div class="grid2">
+    <div class="card"><h3>${t('mandatory')}</h3><p class="muted" style="margin:-6px 0 6px;font-size:13px">${t('mandatoryHint')}</p>
+      ${TOGGLEABLE.map(k => `<div class="switch-row"><span>${t('f_' + k)}</span><label class="switch"><input type="checkbox" data-m="${k}" ${st.mandatory[k] ? 'checked' : ''}><span></span></label></div>`).join('')}</div>
+    <div style="display:flex;flex-direction:column;gap:14px">${listCard('events', t('listEvents'))}${listCard('plans', t('listPlans'))}${listCard('freebies', t('listFreebies'))}</div>
+  </div>
+  ${me.isMain && !LIVE ? `<div style="margin-top:20px;text-align:right"><button class="btn btn-ghost btn-sm" id="resetDemo" style="color:var(--danger)">${t('resetDemo')}</button></div>` : ''}`;
+  const save = async () => { await Store.saveSettings(st); toast(t('updated')); adminSettings(body, me); };
+  $$('[data-m]', body).forEach(c => c.onchange = () => { st.mandatory[c.dataset.m] = c.checked; Store.saveSettings(st).then(() => toast(t('updated'))); });
+  $$('[data-rm]', body).forEach(b => b.onclick = () => { const [k, i] = b.dataset.rm.split(':'); st[k].splice(+i, 1); save(); });
+  const add = k => { const inp = $(`[data-new="${k}"]`, body), v = inp.value.trim(); if (!v) return; if (st[k].includes(v)) return toast(t('itemExists')); st[k].push(v); save(); };
+  $$('[data-add]', body).forEach(b => b.onclick = () => add(b.dataset.add));
+  $$('[data-new]', body).forEach(i => i.onkeydown = e => { if (e.key === 'Enter') add(i.dataset.new); });
+  $('#resetDemo')?.addEventListener('click', async () => { if (await confirmBox(t('resetDemoQ'))) { await Store.resetDemo(); setSession(null); route(); } });
+}
+
+/* ============================================================
+   9. START
+   ============================================================ */
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+document.documentElement.lang = lang;
+route();
+</script>
+</body>
+</html>
